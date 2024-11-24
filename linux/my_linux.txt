@@ -256,6 +256,8 @@ ps -ef | less - показывает пользователя, pid
 
 cat /proc/1/status | less - псевдойал с информацией какими свойствами обладает процесс
 
+ps ax | fgrep cron
+
 
 ##### -
 
@@ -551,3 +553,691 @@ traceroute
   - Neighbor Discovery Protocol
 
 ##### -
+
+
+
+
+##### + UDP
+
+Простейший протокол 4-го уровня
+не дает никаких гарантий 
+source port 
+destination port 
+
+
+##### -
+
+
+
+
+
+##### + TCU
+
+client           server
+  --- SYN -->
+          <-- ACK --
+  -- SYN/ACK -->
+  -- data -->
+          <-- data --
+.......................
+  -- FIN -->
+          <-- FIN/ACK --
+  -- ACK -->
+
+##### -
+
+
+
+
+##### + TCP Dump
+
+sudo -i 
+host ya.ru 
+
+tcpdump -As0 -i any port 80 and host 213.180.204.3
+
+##### -
+
+
+
+
+##### + TCP congestion control
+
+  - Понятие TCP окна
+  - Как быть в случае потери пакетов или их задержки? Congestion control
+  - Изначально window size мал, но растет, пока не происходит таймаутов при ожидании ack 
+  - При таймауте окно уменьшается до 1 mss, лимит роста окна выставляется в половину размера окна до таймаута
+
+что бы повысить скорость, данные отправляются не дожидаясь ACK 
+
+##### -
+
+
+
+
+##### + NAT
+
+  - Основное предназначение - взаимодействие "серых" сетей с внешним миром
+  - Подмена адресов и портов. NAT-таблица. Symmetric NAT.
+
+##### -
+
+
+
+
+##### + Протоколы уровня приложения. DNS 
+
+  - Зачем нужен DNS 
+  - Основные принципы работы 
+  - Авторитативные и рекурсивные DNS-серверы.
+  - Рекурсивный резолвинг. 
+  - dig +trace google.com. 8.8.8.8
+  - Кеширование записей. Понятие TTL.
+  - Основные типы записей. NS, MX, A, AAAA, TXT, SPF, PTR, SRV
+
+dig +trace www.google.com.
+
+. - корневой домен, обслуживаются корневыми днс серверами, адреса которых почти не меняются
+
+данные сервера могу сообщить какими серверами обслуживаются следующие по иерархии домены.
+
+
+# host 8.8.8.8
+8.8.8.8.in-addr.arpa domain name pointer google-public-dns-a.google.com.
+
+# host 1.2.3.4
+Host 4.3.2.1.in-addr.arpa. not found: 3(NXDOMAIN) 
+
+
+
+dig 8.8.8.8.in-addr.arpa
+
+
+8.8.8.8.in-addr.arpa. 59574  IN   PTR   google-public-dns-a.google.com.
+
+##### -
+
+
+
+
+##### + NTP
+
+  - предназначен для синхронизации времени
+  - 
+
+# systemctl status ntpd
+
+# запрос на синхронизацию
+# ntpdate -d -b ntp1.zenon.ru
+
+##### -
+
+
+
+
+##### + HTTP 
+
+  - ИСпользуется в первую очередь для передачи веб-страниц и их содержимого (изображений, таблиц стилей, файлов, javascript и т.д.)
+  - Поскольку штатные средства работы с http (серверы, клиенты, библиотеки) очень распространены, хорошо отлажены и многие разработчики сисадмины умеют с ними работать, 
+  HTTP часто используется для взаимодействия приложений (т.н. REST API)
+
+
+
+##### -
+
+
+
+
+##### + URL
+
+  URL - uniform Resource Location
+
+  - Идентификатором ресурсв, получаемого по HTTP или используемого для отправки данных, является URL 
+
+  http://user:password@www.example.com:80/search?q=term&lang=en#results
+
+  http            - Protocol (scheme)
+  user:password   - User information (Optional. naitive authorization)
+  www.example.com - Host (domain)
+      www         - Subdomain
+      example.com - Root. domain
+      com         - Top-level domain (TLD)
+      co.uk       - "Effective" TLD
+  80              - Port 
+  search          - Path 
+  q=term&lang-en  - Query string 
+  results         - Anchor
+
+
+##### -
+
+
+
+
+##### + Виды HTTP-запросов: GET 
+
+  - Предназначен для получения содержимого страниц, а не отправки данных 
+
+> GET / HTTP/1.1
+> User-Agent: curl/7.35.0
+> Host: www.rambler.ru 
+> Accept: */*
+>
+< HTTP/1.1 200 OK
+< Server: nginx/1.11.1
+< Date: Wed, 19 Oct 2016 10:33:31 GMT
+< Content-Type: text/html; charset=utf-8
+< Transfer-Encoding: chunked
+< Connection: Keep-alive
+< Keep-Alive: timeout=50
+< X-App-Version: 3.22.56
+< X-Request-Id: 52036B1BD2FE150C
+< X-Sentry-ID: None
+< Set-Cookie: proselytize=1 ; domain=.rambler.ru; path/; expires=Wed, 20-Jul-17 23:55:55 GMT
+< Set-Cookie: ruid=vAsAAPpLB1gba1WaAeEAAAB=; expires=The, 31-Dec-37 23:55:55 GMT; domain=.rambler.ru; path=/
+< P3P: CP="NON DSP NID ADMa DEVa TAIa PSAa PSDa OUR IND UNI COM NAV"  
+
+##### -
+
+
+
+
+##### + Коды ответа HTTP ( успешные запросы )
+
+  - 1хх: служебные сообщенния
+  - 2хх: запрос обработан успешно 
+  - 3хх: редиректы.
+    - 301 - постоянный редирект, кешируемый браузерами навсегда.
+    - 302 - временный рекдирект. Цель редииректа указывается в заголовке Location/
+    - 304 - нет изменений ( работает в сочетании с заголовком клиента If-Modified-Since )
+
+    > GET /static/images/project-logos/enwiki.png HTTP/1.1
+    > Host: en.wikipedia.org
+    > If-Modified-Since: Mon, 14 Mar 2016 18:08:11 GMT
+    >
+    < HTTP/2.p 3004 Not Modified
+    < Date: Wed, 19 Oct 2016 10:51:10 GMT
+    < Last-Modified: Mon, 14 Mar 2016 18:08:11 GMT 
+
+  - 4хх: ошибки клиента
+    - 400 - некоректный запрос 
+    - 401 - требуется авторизация
+    - 403 - доступ запрещен
+    - 404 - страница не найдена
+
+  -5хх: ошибки сервера 
+    - 500 - внутренняя ошибка сервера, перезапрашивать бесполезно.
+    - 502 - апстрим ( напр. сервер приложений ) недоступен
+    - 503 - временная ошибка сервера (можно перезапросить)
+    - 504 - истекло время ожидания от апстрима
+
+##### -
+
+
+
+
+##### + SSL 
+
+# подключиться к серверу по ssl 
+# openssl S_client -connect www.google.ru:443
+
+# декодировать файл сертификата
+# openssl asn1parse -in google.crt | less 
+
+
+##### -
+
+
+
+###### Лекция 4
+
+##### + Управление ПО в системе Linux 
+
+  - изначально никаких средств управления установленным ПО, разрешения зависимостей и конфликтов и т.п. Не Существовало,
+    и пользователи должны были вручнуюустанавливать программы с их зависимостями и следить, чтобы они не перетирали друг друга.
+  - Для промышленного применения такой подход оказался неудобным, и были созданы т.н. менеджеры пакетов. В чем их задача? 
+
+##### -
+
+
+
+
+
+##### + Менеджер пакетов RPM
+
+  - Понятие пакета
+    - Набор файлов, верификация содержимого и атрибутов
+    - Зависимости от наличия других пакетов и их версий
+    - Скрипты, исполняемые при установке/удалении
+    - Метаданные пакета - имя, версия/сборка, описание и т.п.
+    - Триггеры
+
+##### - 
+
+
+
+
+##### + Основные методы работы с rpm 
+
+# Просмотр метаданных пакета 
+rpm -qi <packet_name>
+rpm -qi glibc
+
+
+# Список файлов, входящих в пакет, с владельцами и правами
+rpm -qlv <packet_name>
+rpm -qlv glibc
+
+# Список зависимостей пакета
+rpm -qR <packet_name>
+rpm -qR glibc
+
+# Список предоставляемых "виртуальных пакетов" - т.е. зависимости
+rpm -q --providers <packet_name> 
+rpm -q --providers glibc 
+
+# Скрипты, выполняемые при событиях установки, обновления, удаления
+rpm -q --scripts lvm2
+
+
+# Выполнять установку, обновление и удаление средствами голого rpm 
+# Не рекомендуется!
+rpm -i foo-0.1-1.x86_64.rpm     # установка
+rpm -U foo-0.2-1.x86_64.rpm     # обновление
+rpm -e foo                      # удаление
+
+
+##### -
+
+
+
+
+##### + менеджер пакетов yum
+
+  - управление репозиториями
+  - Разрешение зависимостейТранзакционные операции с пакетами
+  - установка
+  - Обновление 
+  - удаление 
+  - откат на предыдущие версии 
+  - подмена "на лету" ( yum swap )
+
+##### -
+
+
+
+
+
+##### + добавление репозиториев yum 
+
+  - В качестве примера добавим на учебную виртуалку репозиторий epel 
+  - Для добавления репозитория необходимо добавить файл с именем, оканчивающимся на .repo, в /etc/yum.reois.d/
+
+cat /etc/yum/.reois.d/epel.repo
+> [epel]
+> name=epel repo 
+> baseurl=http://mirror.yandex.ru/epel/6/x86_64/
+> gpgcheck=0
+> enabled=1
+
+# В чем проблема?
+
+yum install epel-release 
+
+
+
+
+##### -
+
+
+
+
+##### + Основные методы работы с yum
+
+
+# Поиск пакета
+yum search <packet_name>
+yum search perf 
+
+# Установка пакета 
+yum install <packet_name>
+yum install perf 
+
+
+# Переустановка пакета (например при случае его порчи)
+yum reinstall nginx
+
+
+# Обновление пакета
+yum update <packet_name>
+yum update perf 
+
+# Удаление пакета
+yum update <packet_name>
+yum update perf 
+
+# Откат пакета
+yum downgrade <packer_name>  
+yum downgrade perf                       # На предыдущую версию
+yum downgrade perf-3.10.0-327.22.2.el7   # На конкретную версию
+
+# Список подключенных репозиториев 
+yum repolist
+
+# список доступных обновлений
+yum list updates
+
+
+# Установка группы пакетов
+yum grouplist
+yum groupinstall <group_name>
+yum groupinstall Development\ Tools
+
+
+##### -
+
+
+
+
+##### + Самостоятельная сборка пакетов
+
+  - Для сборки пакетов нужно сборочное окружение ( пакет rpm-build с зависимостями ), spec-файл, описывающий содержимое пакета, и исходники пакета.
+  - Крайне не рекомендуется собирать пакеты под привиленированным пользователем
+  - Дерево директорий сборки пакетов 
+      ~/rpmbuild/{BUILD,BUILDROOT,RPMSSOURCES,SPECS,SRPMS}
+
+
+# установка специального пакета rpm-build 
+yum install rpm-build 
+
+##### - 
+
+
+
+
+##### + Минимальный spec-файл ( foo.spec )
+
+### +
+
+Name:    foo
+Version: 0.1
+Release: 1%{&dist}
+Summary: Test package
+
+#Group:
+License : MIT
+Source0 : test.txt
+Requires: glibc 
+
+%description
+Test package
+
+%install
+install -D -m 644 %{SOURCE0} $RPM_BUILD_ROOT/etc/test.txt
+
+# в качестве первого аргумента передается 0 - при удалении пакета, 1 - при установке, 2 - при обновлении
+
+%pre 
+echo preinstall $1
+
+%post 
+echo postinstall $1
+
+%preun
+echo preuninstall $1
+
+%postun
+echo postuninstall $1
+
+%files
+%defattr(-, root, root, -)
+/etc/test.txt
+
+
+### -
+
+
+mkdir -p rpmbuild/{SOURCES,SPECS,BUILD,BUILDROOT,RPMS}
+
+# вим сам создаст структуру для спек файла
+vim rpmbuild/SPECS/foo.spec 
+
+# файл с источником
+touch rpmbuild/SOURCES/test.txt
+
+# сборка пакета 
+rpmbuild -ba rpmbuild/SPECS/foo.spec  
+
+##### -
+
+
+
+
+##### + Классический init 
+
+  - Основная концепция классического init - наличие набора runlevel c 0 по 6 и выполнение набора т.н. Init-скриптов при переключении на соответсвующий runlevel 
+  - Init-скрипты помещаются в /etc/init.d/   Для каждого runlevel-a в /etc/rc.d/rcN.d создается симлинк на соответсвующий init-скрипт.
+  - Runlevel по умолчанию конфигурируется в /etc/inittab
+
+##### -
+
+
+
+
+##### + Системный менеджер systemd
+
+  - Задачи системного менеджера - запуск и остановка приложений при старте системы или по команде, в случае необходимости - перезпускать завершившиеся приложения 
+  - основные концепции systemd
+    - Таргеты
+    - Unit-файлы 
+    - Зависимости между сервисами
+
+
+пример таргета:
+ls -lh /usr/lib/systemd/system/multi-user.target
+ls -lh /usr/lib/systemd/system/multi-user.target.wants/
+ls -lh /etc/systemd/system/multi-user.target.wants/
+
+
+# погуглить
+systemctl isolate multi-user/target
+
+пример юнита:
+
+ls -lh /usr/lib/systemd/system/nginx.service 
+
+
+##### -
+
+
+
+
+
+##### + пример unit-файла 
+
+[Unit]
+Description=nginx - high performance web server 
+Documentation=http://nginx.org/en/docs
+After=network.target remote-fs.target nss-lookup.target 
+
+[Service]
+Type=forking
+PIDfile=/run/nginx.pid
+ExecStartPre=/usr/sbin/nginx -t -c /etc/nginx/nginx.conf 
+ExecStart=/usr/sbin/nginx -c /etc/nginx/nginx.conf
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s QUIT $MAINPID 
+
+[Install]
+WantedBy=multi-user.target
+
+
+
+
+
+systemctl start nginx           # Запуск юнита
+systemctl status nginx          # Просмотр статуса
+systemctl stop nginx            # Остановка юнита 
+systemctl reload nginx          # Перезапуск юнита 
+systemctl enable nginx          # Добавление в автозапуск
+> Created symlink from /etc/systemd/system/multi-user.target.wants/nginx.service to /usr/lib/systemd/system/nginx.service. 
+systemctl disable nginx         # Удаление из автозапуска
+> Removed symlink /etc/systemd/system/multi-user.target.wants/nginx.service  
+systemctl daemon-reload         # Обновление содержимого юнитов 
+
+
+
+##### -
+
+
+
+
+##### + Основные типы Unit-ов 
+
+  - Simple  - Запуск "простого" приложения, которое продолжает работать в бэкграунде
+  - Forking - Запуск демона, который выполняет Fork и завершает родительский процесс 
+  - Oneshot - Запуск разовой операции
+
+##### -
+
+
+
+
+##### + Запуск задач по расписанию
+
+Cron - средство запуска по расписанию
+
+  - /etc/crontab
+  - /etc/cron.d/
+  - пользовательские кронтабы ( /var/spool/cron )
+
+Пример кронтаба:
+
+# cat /etc/cron.d/foo 
+
+MAILTO=admin@example.com
+*/30 0,1 * * 7 root /usr/local/bin/foo.sh -a 10 -b 2
+
+
+ps ax | fgrep cron 
+
+берет задания из основных трех мест:
+
+  1. vim /etc/crontab      - нужны права рута.
+  2. ls -lh /etc/cron.d/   - нужны права рута. сюда можно накиддать файлы с кронтаб заданиями
+  3. crontab -e            - пользовательский кронтаб 
+
+
+##### -
+
+
+
+
+##### + Системный логгер 
+
+  - Задачи системного логгера
+  - системный логгер на примере кыныдщп
+  - Facility и уровень сообщения 
+  - Удаленная отправка логов
+  - Прием и запись удаленных логов 
+
+less /etc/rsyslog.conf
+
+##### -
+
+
+
+
+
+##### + Отправка данных в syslog
+
+  - Для отправки данных в syslog из командной строки существует команда logger, а большинство ЯП имеют в стандартной библиотекесредства работы с  syslog 
+
+
+# logger -p locale.info -t Foo Test ; tail -1 /var/log/messages
+Mar 18 16:07:20 bz-build-centos7 Foo: Test 
+
+
+
+#!/usr/bin/python
+import syslogsyslog.syslog(syslog.LOG_INFO | syslog.LOG_USER, "Test")
+
+
+##### -
+
+
+
+
+
+##### + Ротация логов 
+
+  - Зачем нужна ротация логов 
+  - Виды ротации 
+  - Методы ротации 
+  - Logrotate как штатное средство ротации логов 
+ 
+# cat /etc/logrotate.d/nginx 
+/var/log/nginx/*.log {
+    daily
+    missingok
+    rotate 52
+    compress
+    delaycompress
+    notifempty
+    create 640 nginx adm
+    sharedscripts
+    postrotate
+        [ -f /var/run/nginx.pid ] && kill -USR1 `cat /var/run/nginx.pid`
+    endscript
+}
+
+
+
+##### -
+
+
+
+
+##### + Основные конфигурации сетевых интерфейсов 
+
+  - В RHEL/CentOS конфигурация сетевых интерфейсов находится в /etc/sysconfig/network-scripts.
+  - ifcfg-<iface> - набор правил конфигурации интерфейса
+  - route-<iface> - набор маршрутов, добавляемых при активации интерфейса и удаляемых при деактивации
+
+
+#cat /etc/sysconfig/network-scripts/ifcfg-enp0s3:0
+172.16.0.0/16 via 172.16.0.1 dev enp0s3
+
+
+# сконфигурировать еще один адрес на интерфейс
+
+# vim ifcfg-enp0s3:0
+DEVICE=enp0s3:0
+IPADDR=172.16.0.2
+PREFIX=16
+BOOTPROTO=static
+ONBOOT=yes
+
+# ifup enp0s3:0
+
+
+# vim ifcfg-enp0s3:1
+DEVICE=enp0s3:1
+IPADDR=172.16.0.3
+PREFIX=16
+BOOTPROTO=static
+ONBOOT=yes
+
+# ifup enp0s3:1
+
+
+# сконфигурировать маршрут 
+
+# vim route-enp0s3:0
+172.17.0.0/16 via 172.16.0.1 dev enp0s3:0
+
+
+##### -
+
+
+
