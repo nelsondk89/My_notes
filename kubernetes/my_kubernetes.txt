@@ -2,7 +2,6 @@
 ####
 
 
-kubectl - 
 
 
 
@@ -26,3 +25,437 @@ Kubelet - с помощью API Server-a читает событие о том, 
 
 
 Kube-proxy - отвечает за внутреннюю адресацию сервисов и организацию доступа к ним.  
+
+
+
+kubectl - утилита, для урпавления кластера k8s. Работает как клиент к API Server-у.
+
+# Проверить, настроен ли kubectl
+# kubectl cluster-info
+
+
+
+# для дебага
+# kubectl cluster-info dump
+
+
+# Подробнее про установку, настройку и администрирование
+https://kubernetes.io/ru/docs/tasks/tools/install-kubectl/
+
+
+# !!!
+# Посмотреть список всех зарегисторированных ресурсов и соответсвующих им типов объектов
+# kubectl api-resources
+
+
+# для получения списка объектов
+# kubectl get <название ресурса>
+# kubectl get nodes
+# kubectl get componentstatus
+# kubectl get namespaces 
+
+
+# для получения информации о конкретном ресурсе
+# kubectl get <название ресурса> <имя ресурса>
+
+
+# для получения информации о конкретном ресурсе
+# kubectl get <название ресурса> <имя ресурса> -o json
+# kubectl get <название ресурса> <имя ресурса> -o yaml
+
+
+
+# для получения информации о конкретном ресурсе в человекочитаемом виде
+# kubectl describe <название ресурса> <имя ресурса>
+
+
+# сокращения (указаны в колонке SHORTNAMES команды kubectl api-resources)
+# kubectl get nodes
+# kubectl get node
+# kubectl get no
+
+# kubectl get namespaces 
+# kubectl get ns 
+
+
+# вывести ифнормацию по ресурсам за раз
+# kubectl get no,ns
+
+
+
+
+# kubectl get pod -n <пространство имен>
+# kubectl get pod -n kube-system
+# kubectl get pod -n default 
+
+
+
+# переключение в выбранное пространство имен из дефолтового
+# kubectl config set-context --current --namespace=<имя неймспейса>
+# kubectl config set-context --current --namespace=kube-system
+# 
+
+
+
+
+
+
+# создание нового пространства имен
+# kubectl create ns <имя неймспейса>
+# kubectl create ns myapp
+
+
+
+# создание
+# kubectl create -f <имя файла с описанием объекта (json, yaml ) >
+# kubectl create -f <>
+
+
+# обновление
+# kubectl apply -f <>
+# kubectl apply -f <>
+
+
+# удаление 
+# kubectl delete -f <>
+# kubectl delete -f <>
+
+
+
+Внутри kubectl на основе текущего пространства имен и по стандартным для объекта полям -
+ apiVersion, kind, metadata.name, находит соответсвующий ресурс в API и совершает запросы к API Server-у.
+
+
+Созадние пода
+
+apiVersion: v1 
+kind: Pod 
+metadata:
+  name: hello-demo 
+spec:
+  containers:
+  - name: hello-demo 
+    image: test/hello-app:v1
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "250m"
+      limits:
+        memory: "128Mi"
+        cpu: "500m"
+    ports:
+      - containerPort:8000
+
+
+
+статусы пода:
+
+Pending - сразу после пода и до запуска контейнеров в поде
+Running - хотябы один контейнер в поде поднялся
+Succeeded/Failed - в случае успеха запуска всех контейнеров или возникновения ошибки
+unknown - Kubelet перестал сообщать о статусе пода в API SErver
+
+
+Завершение пода
+
+
+
+
+
+# Создание пода
+# kubectl apply -f pod.yaml
+# 
+
+# посмотреть логи пода (возможно стоит указать неймспейс или перейти в него)
+# kubectl logs <имя пода>
+# 
+
+
+
+# Выполнить команду в контейнере пода в интерактивном режиме
+# kubectl exec -it <pod name> -- <command>
+# kubectl exec -it hello-demo -- /bin/bash
+
+
+# для выхода из интерактивного режима
+# Ctrl-D
+
+
+
+Доступ к Поду по ip
+
+# получить IP пода
+# kubectl get -o jsonpath='{.status.podIP}' pod <pod name>
+# kubectl get -o jsonpath='{.status.podIP}' pod hello-demo
+
+
+# Сохранить IP под-а в переменную POD_ID
+# POD_ID=$(kubectl get -o jsonpath='{.status.podIP}' pod hello-demo)
+# curl http://$POD_ID:8000
+
+
+# Удаление пода
+# kubectl delete pod <pod name>
+# kubectl delete pod hello-demo 
+
+
+
+# запуск пода с помощью kubectl run 
+# kubectl run <pod_name> --image=<image_name>
+
+
+
+
+# Удаление пространства имен (приведет к удалению всех объектов, которые внем находятся)
+# kubectl delete ns <namespace_name> --wait=false
+# kubectl delete ns myapp --wait=false
+
+
+
+##### Deployment
+
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-Deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+     app: hello-demo
+  strategy:
+    type Recreate
+  template:
+    metadata:
+      labels:
+        app: hello-demo 
+    spec:
+      containers:
+        - name: hello-demo 
+          image: 'test/hello-app:v2'
+          ports:
+            - containerPort: 8000
+
+
+
+
+в spec находится спецификация деплоймента:
+
+  - replicas - желаемое количество экземпляров сервиса 
+
+  - selector - селектор для подов, которые будут находиться под управлением деплоймента 
+
+  - strategy - стратегия обновления и ее настройки
+
+  - template - шаблон пода, по которму будут создаваться поды
+
+
+Встроенный контрроллер деплоймента решает следующие задачи:
+
+  - Следит, что бы количество доступных подов было равно требуемому (значение параметра replicas)
+
+  - Обеспечивает процесс обновления версии приложения
+
+
+Стратегии обновления:
+
+- Recreate - сперва удаляются все старые поды. Затем создаются новые. Может приводить к простою приложения. используется редко.
+
+- RollingUodate - постепенное обновление. Удаляются старые поды и постепенно создаются новые, так, чтобы в любой момент времени несколько под были доступны.
+  Есть две настройки:
+
+  - spec.strategy.rollingUpdate.maxUnavailable - опциональное поле. Описывает максимальное количество подов, которое может быть недоступно во время процесса
+    обновления, выраженное либо в процентах от общего количества, либо в абсолютном выражении.
+
+  - spec.strategy.rollingUpdate.maxSurge - опциональное поле. Описывает на какое количество Под контроллем может привысить желаемое значение реплик.
+    Может выражаться как в процентах от общего количества, так и в абсолютном выражении.
+
+
+# посмотреть состояние деплоймента 
+# kubectl get deploy <deploy_name> 
+
+# kubectl describe deploy <deploy_name>
+
+
+# kubectl apply -f deployment.yaml 
+
+
+# kubectl scale deploy/hello-deployment --replicas=2
+
+
+Удаление одного из подов деплоймента
+
+
+
+# выведем все поды с метками hello-demo 
+# kubectl get pod -l app=hello-demo 
+
+
+# выведем имя первого пода из списка:
+# kubectl get pod -l app=hello-demo -o jsonpath="{.items[0].metadata.name}"
+
+
+# Запишем его в переменную POD_NAME 
+# POD_NAME=$(kubectl get pod -l app=hello-demo -o jsonpath="{.items[0].metadata.name}")
+
+# и удалим
+# kubectl delete pod $POD_NAME --wait=false 
+
+
+Обновление ДЕплоймента
+
+
+############### Service
+
+
+apiVersion: v1 
+kind: Service 
+metadata: 
+  name: hello-service 
+spec:
+  selector: 
+    app: hello-demo
+  ports:
+    - port: 9000
+      targetPort: 8000
+  type: ClusterIP
+
+
+
+ - selector - определяет какой набор Под попадет под управление сервиса 
+
+ - ports.port - порт сервиса, запросы на который будут проксироваться на ports.targetPort 
+
+ - type - тип сервиса. Определяет каким образом можно получить доступ к сервису.
+
+   - ClusterIP - по внутреннему IP в кластере
+
+   - NodePort - по порту на ноде кластера 
+
+   - LoadBalancer - по какому-то внешнему, по отношению к кластеру, IP 
+
+
+
+
+
+##### Тип сервиса Cluster IP 
+
+
+
+# kubectl get service hello-service -o json | jq
+
+
+# kubectl get service hello-service -o jsonpath="{.spec.clusterIP}"
+
+
+# CLUSTER_IP=$(kubectl get service hello-service -o jsonpath="{.spec.clusterIP}")
+
+
+# 
+
+
+
+######## Ingress
+
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress 
+metadata:
+  name: hello-ingress 
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  rules:
+  - host: hello.world
+    http:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: hello-service 
+              port:
+                number: 9000
+
+
+
+
+
+#########  конфигурирование
+
+
+Для передачи конфигурации в приложение можно использовать переменные окружения.
+
+В спецификации контейнера это можно сделать через атрибут env.
+
+env - массив пар типа ключ-значение, где ключом является имя переменной окружения, а значением - ее значение.
+
+
+apiVersion: apps/v1 
+kind: Deployment 
+metadata: 
+  name: hello-deployment 
+spec:
+  replicas: 4 
+  selector:
+    matchLabels:
+      app: hello-demo
+  strategy:
+    type: RollingUpdate 
+  template:
+    metadata:
+      labels:
+        app: hello-demo 
+    spec: 
+      containers:
+        - name: hello-demo
+          image: test/hello-app:v3
+          ports:
+            - containerPort: 8000
+          env: 
+            - name: DATABASE_URI
+              value: "postgresql+psycopg2://my"
+            - name: GREETING
+              value: "Alloha"
+
+Это не всегда удобно, т.к. для разных сред- прод и тест конфигруация может отличаться
+
+
+Для отделения конфигурации приложения от среды запуска есть два специальных ресурса:
+
+
+
+ - ConfigMap - объект Kubernetes, который хранит не конфиденциальные данные в виде пар ключ значение 
+
+
+ - Secret - объект Kubernetes, который хранит чувствительные данные, например, пароли, токены и сертификаты, в виде пар ключ-значение. 
+
+
+атрибут data содержит данные в формате ключ-значение.
+
+
+apiVersion: v1 
+kind: ConfigMap 
+metadata:
+  name: hello-config 
+data:
+  GREETING: Privet
+
+
+
+apiVersion: v1 
+kind: Secret
+metadata:
+  name: hello-secret 
+data:
+  DATABASE_URI: slldkglSDFkmdslfksmSDflKSDLGLkSDGkjj
+
+
+Secret отличается от ConfigMap только тем, что данные в нем хранятся по умолчанию в закодированном (base64) виде, но не зашифрованы.
+Это означает, что ели кто-то получит доступ к Secret-у, он сможет его раскодировать.
+
+Доступ к Secret-у также ограничивается на основе ролевой модели в Kubernetes. 
+
+

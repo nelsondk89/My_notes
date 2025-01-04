@@ -1,0 +1,16 @@
+
+
+
+# GET запрос, по умолчанию, без ключей
+
+
+curl -X DELETE 127.0.01:8080/api/v1/namespaces/default/pods/hello-demo | jq
+
+
+curl -X DELETE 127.0.01:8080/api/v1/namespaces/default/pods/hello-demo
+
+
+
+
+curl -s 127.0.0.1:8080/api/v1/events | jq '.items[] | {message: .message, component: .component} | select(.message | index("hello"))'
+
