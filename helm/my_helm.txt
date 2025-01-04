@@ -116,10 +116,12 @@ App-HelmChart/
 
 
 
-Структура values.yaml 
+# Структура values.yaml 
 
 container:
   image: <image_name>:<tag>
+  image1: <image_name1>:<tag>
+  image2: <image_name2>:<tag>
 
 replicaCount: 2
 
@@ -127,7 +129,7 @@ replicaCount: 2
 
 
 
-Структура Chart.yaml 
+# Структура Chart.yaml 
 
 apiVersion  : v2
 name        : App-HelmChart 
@@ -135,5 +137,96 @@ description : My Helm Chart for Kubernetes
 type        : application 
 version     : 0.1.0   # This is the Helm Chart version 
 appVersion  : "0.1.0" # This is the version of the application being deployed 
+
+
+# Структура deployment.yaml без Helm 
+
+apiVersion: apps/v1 
+kind: Deployment
+  metadata:
+    name: my-web-deployment
+    labels:
+      app: my-k8s-deployment
+spec:
+  replicas: 3
+    selector: 
+      matchLabels:
+        project: kgb
+    template:
+      metadata:
+       labels:
+        project: kgb
+      spec:
+        containers:
+          - name: kgb-web
+            image : image_name:tag 
+            ports:
+              - containerPort: 80
+
+
+# Структура deployment.yaml c Helm 
+
+apiVersion: apps/v1 
+kind: Deployment
+  metadata:
+    name: {{ .Release.Name }}-deployment
+    labels:
+      app: {{ .Release.Name }}-deployment
+spec:
+  replicas: {{ .Values.replicaCount }}
+    selector: 
+      matchLabels:
+        project: {{ .Release.Name }}
+    template:
+      metadata:
+       labels:
+        project: {{ .Release.Name }}
+      spec:
+        containers:
+          - name: {{ .Release.Name }}-web
+            image : {{ .Values.container.image}}
+            ports:
+              - containerPort: 80
+
+
+
+# Структура service.yaml без Helm 
+
+apiVersion: v1 
+kind: Service 
+metadata: 
+  name: my-single-pod-service 
+  labels:
+    env  : prod
+    owner: ovwer_name
+spec:
+  selector:
+    project: kgb 
+  ports: 
+    - name      : app-listner
+      protocol  : TCP
+      port      : 80
+      targetPort: 80
+  type: LoadBalancer 
+
+
+# Структура service.yaml с Helm 
+
+apiVersion: v1 
+kind: Service 
+metadata: 
+  name: {{ .Release.Name }}-service 
+  labels:
+    env  : prod
+    owner: ovwer_name
+spec:
+  selector:
+    project: {{ .Release.Name }}
+  ports: 
+    - name      : {{ .Release.Name }}-listner
+      protocol  : TCP
+      port      : 80
+      targetPort: 80
+  type: LoadBalancer 
 
 
