@@ -1,0 +1,139 @@
+
+
+# of site
+https://helm.sh/
+
+
+# download
+https://github.com/helm/helm/releases/tag/v3.16.4
+
+
+
+download the binary file ( example for ubuntu )
+
+mkdir helm
+cd helm/ 
+curl -o https://get.helm.sh/helm-v3.16.4-linux-amd64.tar.gz helm-v3.16.4-linux-amd64.tar.gz
+
+# unpacking
+tar -xf helm-v3.16.4-linux-amd64.tar.gz
+
+ls linux-amd/
+   helm*
+   LISENCE
+   README.md 
+
+# replace binary helm file to bin directory
+sudo mv linux-amd/helm /bin/ 
+
+cd ..
+
+rm -rf helm/
+
+
+
+
+
+# Показать версию Helm 
+# helm version 
+
+
+# Показать все задеплоенные Helm Releases
+# helm list 
+
+
+# Показать Helm Chart с общего списка Hub 
+# helm search hub
+
+
+# Показать Helm Chart из добавленных Repos 
+# help search repo
+
+
+# Сделать скедет Helm Chart в директории ChartName
+# helm create <ChartName/> 
+
+
+# Запаковать Helm Chart в tgz архив 
+# helm package <archive_name> 
+
+
+
+# Задеплоить Helm Chart <app_name> из директории <dir_name/>
+# helm install <app_name> <dir_name/> 
+
+
+
+# Обновить запущенный Деплоймент 
+# helm upgrade <app_name> <dir_name/> --set container.image=<imgage_name>:<tag>
+
+
+# Задеплоить Helm Chart из архива 
+# helm install <app_name> <archive_name.tgz>
+ 
+
+
+# Удалить Деплоймент Helm Chart
+# helm delete <app_name>
+# helm uninstall <app_name>
+
+
+# Добавить Helm Chart от bitnami 
+# helm repo add <repo_name> <repo_url>
+# helm repo add bitnami https://charts.bitnami.com/bitnami
+
+
+# задеплоить Helm Chart bitnami/apache с нашими переменными
+# helm install <app_name> <bitnami/apache> -f my_values.yaml 
+
+
+
+Структура без Helm 
+
+AppMain-deploy/
+  deployment.yaml
+  service.yaml
+
+App1-deploy/
+  deployment.yaml
+  service.yaml
+
+App2-deploy/
+  deployment.yaml
+  service.yaml
+
+
+
+структура с Helm 
+
+App-HelmChart/
+  templates/
+    deployment.yaml
+    service.yaml
+  values.yaml
+  Chart.yaml 
+
+
+
+
+Структура values.yaml 
+
+container:
+  image: <image_name>:<tag>
+
+replicaCount: 2
+
+
+
+
+
+Структура Chart.yaml 
+
+apiVersion  : v2
+name        : App-HelmChart 
+description : My Helm Chart for Kubernetes 
+type        : application 
+version     : 0.1.0   # This is the Helm Chart version 
+appVersion  : "0.1.0" # This is the version of the application being deployed 
+
+
