@@ -122,6 +122,11 @@ https://kubernetes.io/ru/docs/tasks/tools/install-kubectl/
 
 
 
+# 
+# kubectl port-forward <service_name> -n <namespace_name> <external_port>:<internal_cluster_port>
+# kubectl port-forward avc/argocd-server -n argocd 8080:443
+
+
 Внутри kubectl на основе текущего пространства имен и по стандартным для объекта полям -
  apiVersion, kind, metadata.name, находит соответсвующий ресурс в API и совершает запросы к API Server-у.
 
