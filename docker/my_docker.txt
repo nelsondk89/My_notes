@@ -1,0 +1,137 @@
+
+
+
+events
+version
+info
+
+
+rmi
+images
+history
+tag
+inspect
+
+
+login
+logout
+search
+
+
+push
+pull
+
+
+build
+
+commit
+create
+
+run
+
+
+build
+
+
+strat
+stop
+restart
+pause
+unpause
+wait
+
+
+exec
+attach
+
+top 
+logs 
+inspect 
+
+cp 
+diff
+rm 
+kill 
+
+
+export 
+import
+save 
+load 
+
+
+##################################
+
+
+# запустить контейнер из образа
+# docker run <image_name>
+#
+# docker image nginx 
+#
+#
+# docker run -d --name <custom_name_for_contaier> <image_name>
+# 
+# -d - mean deattach  for free terminal
+# 
+# docker run nginx ls /usr/share/nginx/html
+
+
+# посмотреть список контейнеров ( -ф покаже + остановленные контейнеры)
+# docker ps 
+# docker ps -a 
+
+
+# подключиться к контейнеру
+# docker exec <containet_id/container_name> <some_bash_command>
+# docker exec <containet_id/container_name> ls /usr/share/nginx/html 
+# 
+# 
+# docker exec -it <containet_id/container_name> /bin/bash  
+#
+
+
+
+# остановить контейнер 
+# docker stop <container_id/container_name>
+
+
+# посмотреть список локальных образов
+# docker images 
+
+
+# удалить контейнер
+# docker rm <container_id/container_name>
+#
+# docker rm -f $(docker ps -aq)
+
+
+# удалить образ 
+# docker rmi <image_name>
+# 
+# docker rmi -f $(docker images -aq)
+
+
+# посмотреть мета информацию об образе/контейнере  
+# docker inspect <image_id/container_id/container_name>
+
+
+# Посмотреть логи работы контейнера 
+# docker logs <container_id/container_name>
+
+
+# Скопировать файл из контейнера 
+# docker cp <container_id/container_name>:<source_full_path_to_file> <dest_path_to_copy>
+# docker cp test_nginx:/usr/share/nginx/html/index.html . 
+
+
+# Скопировать файл в контейнер 
+# docker cp <source_path_to_copy> <container_id/container_name>:<dest_full_path_to_file> 
+# docker cp ./index.html test_nginx:/usr/share/nginx/html/index.html 
+
+
+# 
+# 
+# 
+
+
+
