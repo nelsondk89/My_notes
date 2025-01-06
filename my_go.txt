@@ -1,0 +1,5 @@
+
+# Шаблонизатор GO text template для новичков
+https://habr.com/ru/articles/792802/
+
+
