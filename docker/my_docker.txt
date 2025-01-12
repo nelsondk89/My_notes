@@ -130,8 +130,28 @@ load
 
 
 # 
+# собрать образ 
+# docker build -t <image_name> <path_to_dir>
+# docker build -t aouta-service ./service/
+
+
+# посмотреть текущие докер сети 
+# docker network ls 
+
+
+# создать новую докер сеть 
+# docker netwprk create -d <driver_name> <network_name>
+# docker network create -d bridge quote-infra
+
+
+# флаг hostname позволяет определить имя хоста во внутреннем dns внутри сети 
+# docker run --hostname=<hostname_name> --network=<network_name> -d <image_name>
+# docker run --hostname=quoteservice --network=quota-infra -d qoute-service
+
+
 # 
-# 
+# docker run -v <path_local_dir>:<path_dir_inside_container> -p <host_port>:<container_port>
+# docker run -v $(pwd)/nginx/www:/usr/share/nginx/html -v $(pwd)/nginx.conf:/etc/nginx -p 80 -d --network=qoute-infra nginx
 
 
 
