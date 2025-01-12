@@ -1,0 +1,168 @@
+
+
+
+# 
+# terraform init
+# terraform init -backend-config=backend.hcl
+
+
+# 
+# terraform validate
+
+
+# 
+# terraform plan
+
+
+# 
+# terraform apply
+
+
+# 
+# terraform create
+
+
+# 
+# terraform destroy
+
+
+# 
+# terraform graph
+
+
+resource "aws_instance" "example" {
+  ami = "ami-sfgsfgaij12341"
+  instance_type = "t2.micro"
+
+  user_data = <<-EOF
+              #!/bin/bash 
+              echo "Hello, World" > index.html
+              nohup busybox httpd -f -p 8080 &
+              EOF
+
+  user_data_replace_on_change = true
+
+  tags = {
+    Name = "terraform-example"
+  }
+}
+
+
+
+
+
+
+
+
+
+variable "NAME" {
+  [CONFIG...]
+  description  = "" #
+  type         = number # string - 
+                        # number - 
+                        # bool   - 
+                        # list   - 
+                        # map    - 
+                        # set    - 
+                        # object - 
+                        # tuble  - 
+                        # any    - 
+  default      = 42     # ( значение можно передать через ключ -var , или через файл -var-file , или через переменную среды TF_VAR_<var_name> )
+  vaidation   = true    # позволяет определять собственные правила проверки
+  sensitice   = true    # если присвоить значение true  то terraform не будет выводить значние при plan и apply
+}
+
+
+variable "list_example" {
+  description = ""
+  type        = list
+  default     = [ "a", "b", "c" ]
+}
+
+
+variable "list_numeric_example" {
+  description = ""
+  type        = list(number)
+  default     = [ 1, 2, 3 ]
+}
+
+
+variable "map_example" {
+  description = ""
+  type        = map(string) 
+  default     = {
+    key1 = "value1"
+    key2 = "value2"
+    key3 = "value3"
+  }
+}
+
+
+variable "object_example" {
+  description = ""
+  type        = 
+  default     = 
+}
+
+
+variable "_example" {
+  description = ""
+  type        = object({
+    string  = string
+    age     = number
+    tags    = list(string)
+    enabled = bool
+  })
+  default     = {
+    name    = "value1"
+    age     = 42
+    tags    = [ "a", "b", "c" ]
+    enabled = true
+  }
+}
+
+
+
+variable "_example" {
+  description = ""
+  type        = 
+  default     = 
+}
+
+
+
+
+output "publit_ip" {
+  value = aws_instance.example.public_ip
+  description = "The public IP address of the web server"
+}
+
+# 
+# terraform output
+# 
+# terraform output <var_name>
+#
+
+
+# 
+# 
+
+
+# посмотреть в какой рабочей области сейчас находимся
+# terraform workspace show
+
+
+# создать новую рабочую область
+# terraform workspace new <workspace_name>
+
+
+# посмотреть список рабочих областей
+# terraform workspace list 
+
+
+# перейти в указанную рабочую область
+# terraform workspace select <workspace_name>
+
+
+# 
+# 
