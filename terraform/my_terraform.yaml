@@ -1,6 +1,12 @@
 
 
 
+# code examples
+# https://github.com/brikis98/terraform-up-and-running-code
+
+
+
+
 # 
 # terraform init
 # terraform init -backend-config=backend.hcl
