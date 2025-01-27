@@ -1,0 +1,32 @@
+
+
+
+
+
+
+psql -h <host_ip> -p <port> -U <username> -d <databse_name>
+
+
+
+# вывести список схем
+\dn 
+
+
+# создать схему 
+create schema "new_schema_name" authorization "role_name";
+
+
+
+
+show role;
+
+
+
+# вывести список всех ролей
+\du
+
+
+
+# вывести список всех баз данных
+\l
+
