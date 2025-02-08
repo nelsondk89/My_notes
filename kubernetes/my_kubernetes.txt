@@ -388,6 +388,8 @@ spec:
 
 
 
+
+
 #########  конфигурирование
 
 
@@ -463,4 +465,19 @@ Secret отличается от ConfigMap только тем, что данн�
 
 Доступ к Secret-у также ограничивается на основе ролевой модели в Kubernetes. 
 
+
+
+
+###
+
+https://github.com/kubernetes/ingress-nginx
+https://github.com/jcmoraisjr/haproxy-ingress
+https://github.com/projectcontour/contour
+https://github.com/traefik/traefik
+https://github.com/istio/istio
+https://github.com/kubernetes-sigs/aws-load-balancer-controller
+https://github.com/ingress-gce
+https://github.com/Azure/application-gateway-kubernetes-ingress
+
+###
 
