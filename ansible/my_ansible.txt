@@ -1,3 +1,9 @@
+
+https://docs.ansible.com/ansible/latest/user_guide/
+
+
+
+
 # install from yum
 
 # обновляем репозиторий
@@ -91,6 +97,73 @@ ansible/
 # запустить плейбук
 # опционально можно добавить имя файла со списком хостов, если его нет в ansible.cfg
 # ansible-playbook playbook1.yaml 
+
+
+
+
+
+
+
+# создает зашифрованный файл. запрашивает пароль при создании файла для расшифровки
+# ansible-vault create mysecret.txt
+
+
+# зашифровать существующий файл. запрашивает пароль 
+# ansible-vault encript mysecret.txt
+# ansible-vault encript playbook_vault.yml
+
+
+# посмотреть зашифрованный текст
+# ansible-vault viewц mysecret.txt
+
+
+# отредактировать зашифрованный текст
+# ansible-vault edit mysecret.txt
+
+
+# поменять пароль 
+# ansible-vault rekey mysecret.txt
+
+
+# расшифровать существующий файл. запрашивает пароль 
+# ansible-vault decript mysecret.txt
+# ansible-vault decript playbook_vault.yml
+
+
+# запустить зашифрованный плейбук. запросит пароль при выполнении
+# ansible-playbook playbook_vault.yml --ask-vault-pass
+
+
+# запустить зашифрованный плейбук. с указанием файла, в котором лежит пароль
+# ansible-playbook playbook_vault.yml --vault-password-file mypass.txt
+
+
+# шифрование строк. 
+# ansible-vault encript_string
+# сперва вводим пароль и подтверждение пароля. 
+# потом вводим текст для шифрования. надо нажать ctrl+d
+# шфированая строка начинатеся вкулючительно с   ! vault |  
+#
+# после использования зашифрованного пароля в плейбуке, его следует запускать так:
+# ansible-playbook playbook_vault.yml --ask-vault-pass
+
+
+
+# шифрование строк2 . этот метод удобнее
+# echo -n "secretword" | ansible-vault encript_string
+#
+ |  
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -507,7 +580,7 @@ linux3 ansible_host=10.10.10.3 oowner=Kolya
 #      dest   : {{ destin_file }}
 #      mode   : 0555
 #    loop : 
-#      - "Index.html"
+#      - "index.html"
 #      - "picture1.png"
 #      - "picture2.png"
 #      - "picture3.png"
@@ -583,3 +656,584 @@ setTimeout('Elastic()',100)
 </HTML>
 
 ######################################
+
+
+
+############## index.j2 ##############
+
+<HTML>
+<HEAD>
+<TITLE>Name</TITLE>
+<SCRIPT LANGUAGE="JavaScript">
+      var sizes = new Array(0,1,2,4,8,10,12);
+      size.pos = 0;
+
+function Elastic ()
+{
+    var = document.all.Elastic
+    if (null == el.direction).el.direction = 1
+    else if ((sizes.pos > sizes.lenght - 2) || (0 == sizes.pos))
+    el.direction *= -1
+    el.style.letterSpacing = sizes[sizes.pos += el.direction]
+setTimeout('Elastic()',100)
+}
+
+</SCRIPT>
+<BODY bgcolor="gray" onLoad=Elastic()>
+<CENTER>
+<br><br><br><br>
+<br><br><br><br>
+<font color="gold">Ownew of this Server is: {{ owner }}<br>
+<font color="green"><h2>This COOL WebServer Build By</h2>
+<font color="gold"><H1 ID="elastic" ALGIN="Center"ANSIBLE></H1>
+Server Host Name : {{ ansible_hostname }}<br>
+Server OS Family is: {{ ansible_os_family }}<br>
+IP Address of this Server is: {{ ansible_default_ipv4.address }}<br>
+
+</body>
+</HTML>
+
+######################################
+
+
+
+
+
+
+########### playbook7.yaml ###########
+---
+- name   : Install Apache and Upload my Home Page 
+  host   : all 
+  become : yes`
+
+  vars:
+    source_folder : ./MyWebSite2
+    destin_folder : /var/www/html
+
+  tasks:
+  - name  : Check and print Linux Version
+    debug :
+      var : ansible_os_family
+
+
+  - block : # === Block for RedHat ===
+
+    - name : Install Apache WebServer for RedHat
+      yum  : name=httpd state=installed
+
+    - name    : Start Web Server service RedHat
+      service : name=httpd state=started endabled=yes
+
+    when : ansible_os_family == "RedHat"
+
+
+  - block : # === Block for Debian
+
+    - name : Install Apache WebServer for Debian
+      apt  : name=apache2 state=installed 
+
+    - name    : Start Web Server service Debian
+      service : name=httpd state=started endabled=yes
+
+    when : ansible_os_family == "Debian"
+
+
+  - name  : Generate INDEX.HTML file
+    template : src={{ source_folder }}/index.j2 dest={{ destin_folder }}/index.html mode=0555  # модуль template тоже самое что и copy, только проверяет наличие переменных и заменяет их значениями 
+    notify:
+      - Restart Apache RedHat
+      - Restart Apache Debian
+ 
+
+
+
+  - name : Copy Home Page file to Web Server                       # Скопировать файлы на сервера указав список файлов
+    copy : 
+      src    : {{ source_folder }}/{{ item }} 
+      dest   : {{ destin_file }}
+      mode   : 0555
+    loop : 
+      - "picture1.png"
+      - "picture2.png"
+      - "picture3.png"
+      - "picture4.png"      
+    notify : 
+      - Restart Apache RedHat
+      - Restart Apache Debian
+
+
+ 
+
+  handlers:
+  - name    : Restart Apache RedHat
+    service : name=httpd state=restarted
+    when : ansible_os_family == "RedHat"
+
+  - name    : Restart Apache Debian
+    service : name=apache2 state=restarted
+    when : ansible_os_family == "Debian"
+
+#####################################
+
+
+
+
+Роли
+
+https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_reuse_roles.html
+
+
+Создаем отелную папку roles и применяем в нее команду ansible-galaxy init <role_name>
+
+# ansible-galaxy init deploy_apache_web
+
+deploy_apache_web/
+  defaults/
+    main.yml    # для констант
+  files/        # для файлов, которые должны быть скопированы на сервера
+  handlers/
+    main.yml    # хендлеры (типа процедур) зранятся здесь
+  meta/
+    main.yml    # непонятно зачем, выяснить
+  README.md
+  tasks/
+    main.yml    # здесь хранятся все таски
+  templates/    # для файлов, которые будут сгенерированы перед копированием на сервера (*.j2)
+  tests/        # в примере не используется. выяснить
+    inventory
+    test.yml
+  vars/
+    main.yml    # для переменных 
+
+
+
+
+после переноса всех файлов получается
+
+
+
+deploy_apache_web/
+  defaults/
+    main.yml    # для констант
+  files/        # для файлов, которые должны быть скопированы на сервера
+    picture1.png
+    picture2.png
+    picture3.png
+    picture4.png
+  handlers/
+    main.yml    # хендлеры (типа процедур) зранятся здесь
+  meta/
+    main.yml    # непонятно зачем, выяснить
+  README.md
+  tasks/
+    main.yml    # здесь хранятся все таски
+  templates/    # для файлов, которые будут сгенерированы перед копированием на сервера (*.j2)
+    index.j2
+  tests/        # в примере не используется. выяснить
+    inventory
+    test.yml
+  vars/
+    main.yml    # для переменных 
+
+
+############ defaults/main.yml ############
+---
+# defaults file for deploy_apache_web 
+destin_folder: /var/www/html
+
+###########################################
+
+
+############ handlers/main.yml ############
+---
+# handlers file for deploy_apache_web 
+- name    : Restart Apache RedHat
+  service : name=httpd state=restarted
+  when : ansible_os_family == "RedHat"
+
+- name    : Restart Apache Debian
+  service : name=apache2 state=restarted
+  when : ansible_os_family == "Debian"
+
+###########################################
+
+############## tasks/main.yml #############
+---
+# tasks file for deploy_apache_web
+  debug :
+    var : ansible_os_family
+
+- block : # === Block for RedHat ===
+  - name : Install Apache WebServer for RedHat
+    yum  : name=httpd state=installed
+  - name    : Start Web Server service RedHat
+    service : name=httpd state=started endabled=yes
+  when : ansible_os_family == "RedHat"
+
+- block : # === Block for Debian
+  - name : Install Apache WebServer for Debian
+    apt  : name=apache2 state=installed 
+  - name    : Start Web Server service Debian
+    service : name=httpd state=started endabled=yes
+  when : ansible_os_family == "Debian"
+
+- name  : Generate INDEX.HTML file
+  template : src=index.j2 dest={{ destin_folder }}/index.html mode=0555  # модуль template тоже самое что и copy, только проверяет наличие переменных и заменяет их значениями 
+  notify:                                                                # src folder более не указываем, т.к. теперь файлы хранятся в папке templates
+    - Restart Apache RedHat
+    - Restart Apache Debian
+
+- name : Copy Home Page file to Web Server                               # Скопировать файлы на сервера указав список файлов
+  copy : 
+    src    : {{ item }}                                                  # src folder более не указываем, т.к. теперь файлы хранятся в папке files 
+    dest   : {{ destin_file }}
+    mode   : 0555
+  loop : 
+    - "picture1.png"
+    - "picture2.png"
+    - "picture3.png"
+    - "picture4.png"      
+  notify : 
+    - Restart Apache RedHat
+    - Restart Apache Debian
+
+###########################################
+
+
+########### playbook6.yaml ###########
+---
+- name: Install Apache and Upload my Home Page
+  hosts: all
+  become: yes
+
+  roles:                                                                # здесь указываем список ролей
+    - deploy_apache_web
+    - { role : <role_name>, when: ansible_system == 'Linux' }           # пример запуска роли с параметром (можно указать несколько) 
+
+######################################
+
+
+
+
+
+
+
+
+Внешние переменные
+
+
+
+
+########## playbook8.yml ##############
+---
+- name  : Install Apache and Upload my Home Page
+  hosts : "{{ MYHOSTS }}"                                     # Параметризируем значение хостов для передачи значения при запуске плейбука
+  become: yes
+
+  roles:
+    - { role: deploy_apache_web, when: ansible_system == 'Linux' }
+
+######################################
+
+можно писать:
+--extra-var
+--extra-vars
+-e 
+
+# 
+# ansible-playbook playbook8.yml --extra-vars "MYHOSTS=STAGING"
+# ansible-playbook playbook8.yml --extra-vars "MYHOSTS=STAGING owner=DENIS"
+
+
+
+
+
+
+
+
+
+Использование Import, Include
+
+
+
+
+
+
+########### playbook9_includes.yml ##############
+---
+- name  : My Super Playbook
+  hosts : all
+  become: yes
+
+  vars:
+    mytext: "Privet"
+  
+  tasks:
+  - name: Ping test
+    ping:
+
+  - name: Create folder1
+    file:
+      path : /home/secret/folder1
+      state: directory
+      mode : 0755
+
+  - name: Create folder2
+    file:
+      path : /home/secret/folder2
+      state: directory
+      mode : 0755
+
+  - name: Create file1
+    copy:
+      dest    : /home/secret/file1.txt
+      content : |
+        Text Line1, in file1
+        Text Line2, in file1
+        Text Line3, {{ my text }}
+
+  - name: Create file2
+    copy:
+      dest    : /home/secret/file2.txt
+      content : |
+        Text Line1, in file2
+        Text Line2, in file2
+        Text Line3, {{ my text }}
+
+#################################################
+
+
+после применеия инклуда и импорта
+
+############## create_folders.yml ##############
+---
+- name: Create folder1
+  file:
+    path : /home/secret/folder1
+    state: directory
+    mode : 0755
+
+- name: Create folder2
+  file:
+    path : /home/secret/folder2
+    state: directory
+    mode : 0755
+
+#################################################
+
+
+############## create_files.yml #################
+---
+- name: Create file1
+  copy:
+    dest    : /home/secret/file1.txt
+    content : |
+      Text Line1, in file1
+      Text Line2, in file1
+      Text Line3, {{ my text }}
+
+- name: Create file2
+  copy:
+    dest    : /home/secret/file2.txt
+    content : |
+      Text Line1, in file2
+      Text Line2, in file2
+      Text Line3, {{ my text }}
+
+#################################################
+
+
+########### playbook10_includes.yml ##############
+---
+- name  : My Super Playbook
+  hosts : all
+  become: yes
+
+  vars:
+    mytext: "Privet"
+  
+  tasks:
+  - name: Ping test
+    ping:
+
+
+  # - import  : create_folders.yml                # можно вставлять без name
+  # - include : create_files.yml mytext="Hello"   # можно сразу задать/переопределить переменные
+
+  - name    : Create Folders
+    import  : create_folders.yml                  # перед запуском плейбука происходи импорт. сразу вставляются переменные 
+
+  - name    : Create Files
+    include : create_files.yml                    # в процессе выполнения происходит инклую. переменные вставляются непосредственно перед использованием
+
+#################################################
+
+
+
+
+
+
+
+Перенаправления выполнения Tasks из Playbook
+
+
+
+
+
+
+########### playbook10_includes.yml ##############
+---
+- name:   My Super Playbook
+  hosts:  all
+  become: yes
+
+  tasks:
+  - name: Ping test
+    ping:
+  
+  - name : Unregister Server from Load Balancer
+    shell : echo this server {{ inventory_hostname }} was deregistered from our LOAD Balancer, node name is {{ ansible_nodename }} >> /home/log.txt 
+    delegate_to: 127.0.0.1  # команда от имени серверов в плейбуке выполнится только на указанном сервере
+                            # таким образом можно собирать данные с серверов
+
+  - name : Create file1
+    copy:
+      dest: /home/file1.txt 
+      content : |
+        line1
+    delegate_to: linux3                                   # данная команда перенаправится с каждого сревера и выполнится только на linux3
+
+
+  - name : Update my Database
+    shell: echo "UPDATING Database..."
+    run_once: true                                        # выполниться только один раз на первом попавшемся сервере (можно использовать без delegate_to)
+    delegate_to: <database_server> 
+
+  - name  : Reboot my servers 
+    shell : sleep 3 && reboot now                         # перезагружаем сервера. лучше применять совместно со sleep
+    async : 1                                             # 
+    pool  : 0                                             # 
+  
+  - name       : Wait till my servers will come up online
+    wait_for   :
+      host     : "{{ inventory_hostname }}" 
+      state    : started
+      delay    : 5                                         # количество секунд, которые ждем перед применением команды 
+      timeout  : 40                                        # максиальное количество секунд ожидаем выполнения команды
+    delegate_to: 127.0.0.1                                 # таск ожидания пока сервера рестартанут. запускается на мастер сервере
+                                                           # и далее можно создать таски на сервра для выполнения после рестарта
+
+
+
+#################################################
+
+
+
+
+
+
+
+
+Перехват и контроль ошибок 
+служит для того, что б остановить плейбук если где то произошла ошибка
+
+
+нормальная работа, если один таск зафейлился на узле, то на этом узле другие таски не применяются, а на остальных продолжают применяться
+
+
+
+
+
+
+
+########### playbook_errorhandling.yml ##########
+---
+- name  : Ansible lesson 19
+  hosts : all 
+  any_errors_fatal : true                    # плейбук остановится на всех серверах при любой ощибке на любом сервере
+  become: true 
+
+  tasks:
+  - name: Task 1
+    yum : name=treeEEE state=installed        # Специально указана ошибка в имени пакета
+    ignore_errors: yes                        # если указано yes последующие таски всё равно выполнятся
+
+  - name: Task 2
+    shell : echo Hello World!
+    register: results
+    failed_when: results.rc != 0                  # Зафейлится только когда ког возврата не равно 0 (так работает по умолчанию)
+    # failed_when: "'World!' in results.stdout "  # Зафейлится только когда в выводе будет слово 'World'
+
+  - name: print results
+    debug:
+      var: results
+
+  - name: Task 3
+    shell : echo Privet mir!
+
+#################################################
+
+
+
+
+
+
+
+Хранение секретов ansible-vault
+
+
+
+
+# создает зашифрованный файл. запрашивает пароль при создании файла для расшифровки
+# ansible-vault create mysecret.txt
+
+
+# зашифровать существующий файл. запрашивает пароль 
+# ansible-vault encript mysecret.txt
+# ansible-vault encript playbook_vault.yml
+
+
+# посмотреть зашифрованный текст
+# ansible-vault viewц mysecret.txt
+
+
+# отредактировать зашифрованный текст
+# ansible-vault edit mysecret.txt
+
+
+# поменять пароль 
+# ansible-vault rekey mysecret.txt
+
+
+# расшифровать существующий файл. запрашивает пароль 
+# ansible-vault decript mysecret.txt
+# ansible-vault decript playbook_vault.yml
+
+
+# запустить зашифрованный плейбук. запросит пароль при выполнении
+# ansible-playbook playbook_vault.yml --ask-vault-pass
+
+
+# запустить зашифрованный плейбук. с указанием файла, в котором лежит пароль
+# ansible-playbook playbook_vault.yml --vault-password-file mypass.txt
+
+
+# шифрование строк. 
+# ansible-vault encript_string
+# сперва вводим пароль и подтверждение пароля. 
+# потом вводим текст для шифрования. надо нажать ctrl+d
+# шфированая строка начинатеся вкулючительно с   ! vault |  
+#
+# после использования зашифрованного пароля в плейбуке, его следует запускать так:
+# ansible-playbook playbook_vault.yml --ask-vault-pass
+
+
+
+# шифрование строк2 . этот метод удобнее
+# echo -n "secretword" | ansible-vault encript_string
+#
+
+
+
+
+
