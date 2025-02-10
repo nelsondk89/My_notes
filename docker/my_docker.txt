@@ -1,6 +1,13 @@
 
 
 
+https://docs.docker.com/engine/install/ubuntu/
+
+
+
+# добавить пользователя в группу для запуска doker с правами sudo. после приминения нужно сделать logoff/login
+# sudo usermod -aG docker $USER
+
 events
 version
 info
