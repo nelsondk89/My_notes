@@ -1,0 +1,38 @@
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-webserver-config               # <-- 1 --> имя должно совпадать с именем в Deployment spec.template.spec.volumes.name
+data:
+  server.conf: |                          # имя файла с конфигурацией
+    port=8080
+    log_level=info
+    database_url=jdbc:mysql - FORBIDDEN - mydb:3306/mydatabase
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-webserver                      # Имя самого деплоймента, Должно быть уникальным в пределах одного namespace
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: my-webserver                   # <-- 3 --> селектор который используется Deployment-ом для поиска и управления Pod-ами
+  template:                               # Deployment создает Pod-ы описываемые templates
+    metadata:
+      labels:
+        app: my-webserver                 # <-- 3 --> это имя метки, которо будет добавлено Pod-ам
+    spec:
+      containers:                         # список контейнеров, которые будут запущены внутри созданного Pod-a
+      - name: my-webserver-container      # имя контейнера внутри Pod-а. локальное имя
+        image: my-webserver-image         # <замените на ваш образ>
+        volumeMounts:                     # Указывает как тома монтируются внутри контейнера
+        - name: config-volume             # это всего лишь ссылка на том (диск монтирования), определенном в другом месте , должно совпадать с  spec.template.spec.containers.volumeMounts.name  <-- 2 -->
+          mountPath: /etc/my-webserver    # путь в файловой системе контейнера, куда будет смонтирован том. рекомендуется использовать /etc или другую дирректорию для конфигурационных файлов
+      volumes:                            # определяет тома
+      - name: config-volume               # <-- 2 --> имя том (диска монтирования), должно совпадать с  spec.template.spec.containers.volumeMounts.name
+        configMap:                        # указывает, что том создан из configMap
+          name: my-webserver-config       # <-- 1 --> имя из configmap.yaml metadata.name

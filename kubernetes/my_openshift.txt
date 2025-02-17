@@ -1,0 +1,71 @@
+
+
+# docs for commands os 
+# https://docs.openshift.com/container-platform/4.5/cli_reference/openshift_cli/developer-cli-comands.html
+
+
+# Авторизайия. Получить готовую oc login команду с токеном для входа можно в вуб-вурсии OpenShift.
+# Правый верхний угол с логином -> Copy Login Command
+#
+# oc login
+
+
+# Команда для отображения списка проектов, к которым у пользователя есть доступ.
+# Проект, используемый в текущий момент, будет выделен
+#  
+# oc projects 
+
+
+# Команда используется для выбора проекта из списка доступных, для которого будут применяться последующие команды из консоли
+# 
+# oc project 
+
+
+# Команда дает краткую информацию о состоянии проекта со списокм компонентов.
+# 
+# oc status 
+
+
+# Вывести список ресурсов в проекте заданного типа.
+# 
+# oc get [ pods deployment secrets configmaps ... ]
+
+
+# Команды для управления секретами (хранилищами паролей и сертификатов)
+# 
+# oc secrets 
+# 
+# Пример команды для задания сектрета с id my-pull-secret в качестве секрета для pull image из хранилища образов registry по умолчанию
+# 
+# oc secrets link default my-pull-secret --for=pull
+
+
+# Команда для создания ресурса (Pod|Secret|Deployment и т.д.) из файла в формате YAML или JSON
+#  
+# oc create -f file-path/file-name
+
+
+# Команда для обновления параметров существующего ресурса (Pod|Secret|Deployment и т.д.) из файла в формате YAML или JSON
+# 
+# oc apply -f file-path/file-name
+
+
+# Удаление ресурса
+# 
+# oc delete
+# 
+# Пример команды удаления DeploymentConfig с именем my-first-deployment
+# 
+# oc delete deploymentconfig/my-first-config
+
+
+# Задание требуемого количества реплик для ReplicationController или DeploymentConfig
+# oc scale 
+# 
+# Пример задания 3х реплик для DeploymentConfig с именем my-first-config:
+# oc scale deploymentconfig/my-first-config --replicas=3
+
+
+
+
+

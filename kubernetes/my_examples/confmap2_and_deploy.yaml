@@ -1,0 +1,45 @@
+# ConfigMap для настроек сервера
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-webserver-server-config                        # <-- 1 -->
+data:
+  server.conf: |
+    port=8080
+    log_level=info
+
+---
+
+# ConfigMap для настроек базы данных
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-webserver-db-config                            # <-- 2 -->
+data:
+  database.conf: |
+    url=jdbc:mysql - FORBIDDEN - mydb:3306/mydatabase
+
+---
+
+# Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-webserver
+spec:
+  # ... (остальные части Deployment остаются теми же)
+      volumes:
+      - name: server-config-volume                        # <-- 3 -->
+        configMap:
+          name: my-webserver-server-config                # <-- 1 -->
+      - name: db-config-volume                            # <-- 4 -->
+        configMap:
+          name: my-webserver-db-config                    # <-- 2 -->
+      containers:
+      - name: my-webserver-container
+        image: nginx:latest
+        volumeMounts:
+        - name: server-config-volume                      # <-- 3 -->
+          mountPath: /etc/my-webserver/server
+        - name: db-config-volume                          # <-- 4 -->
+          mountPath: /etc/my-webserver/db
