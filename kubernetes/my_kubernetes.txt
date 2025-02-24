@@ -481,3 +481,106 @@ https://github.com/Azure/application-gateway-kubernetes-ingress
 
 ###
 
+
+
+#### Создание Service Account
+
+
+# kubectl create serviceaccount my-jenkins-sa -n my-namespace
+# 
+# или используя файл 
+# 
+# apiVersion: v1
+# kind: ServiceAccount
+# metadata:
+#   name: my-jenkins-sa
+#   namespace: my-namespace
+# 
+# затем применить этот файл 
+# 
+# kubectl apply -f serviceaccount.yaml
+
+
+
+
+### Создание Role и ClusterRole
+
+Role и ClusterRole в Kubernetes определяют, какие действия пользователь, группа или Service Account может выполнять в кластере.  Ключевое различие:
+
+* Role: Определяет права доступа *в пределах одного пространства имен*.
+* ClusterRole: Определяет права доступа *во всем кластере*.
+
+Выбор между Role и ClusterRole зависит от области действия необходимых разрешений.  Для большинства сценариев рекомендуется использовать Role, ограничивая тем самым область действия прав доступа.  ClusterRole следует использовать только тогда, когда действительно необходим доступ ко всему кластеру.
+
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: my-namespace
+  name: my-jenkins-role
+rules:
+- apiGroups: [""]
+  resources: ["pods", "deployments", "services"] # Пример, добавьте необходимые ресурсы
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"] # Пример, добавьте необходимые глаголы
+
+
+Примените Role:
+
+kubectl apply -f role.yaml
+
+
+Затем создайте RoleBinding для связывания роли с Service Account:
+
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: my-jenkins-rolebinding
+  namespace: my-namespace
+subjects:
+- kind: ServiceAccount
+  name: my-jenkins-sa
+roleRef:
+  kind: Role
+  name: my-jenkins-role
+  apiGroup: rbac.authorization.k8s.io
+
+
+Примените RoleBinding:
+
+kubectl apply -f rolebinding.yaml
+
+Замените:
+
+* my-jenkins-sa:  Имя вашего Service Account.
+* my-namespace:  Пространство имен, в котором будет создан Service Account.
+* my-jenkins-role: Имя роли.
+* pods, deployments, services:  Замените на необходимые ресурсы Kubernetes.
+* get, list, watch, create, update, patch, delete: Замените на необходимые глаголы (verbs).  Будьте осторожны с предоставлением чрезмерных прав.
+
+
+
+Проверка:
+
+После выполнения этих команд вы можете проверить, что Service Account создан:
+
+kubectl get serviceaccount my-jenkins-sa -n my-namespace
+
+
+####   
+
+
+Получение токена:
+
+После создания Service Account и RoleBinding вы можете получить токен для доступа к кластеру. Этот токен необходимо будет добавить в Secret в Kubernetes и использовать в Jenkins Credentials. Вы можете получить токен с помощью:
+
+
+kubectl describe secret $(kubectl get secrets -n my-namespace | grep my-jenkins-sa | awk '{print $1}') -n my-namespace
+
+
+
+Обратите внимание на строку token: в выводе этой команды.  Этот токен нужно сохранить в безопасном месте и добавить в Kubernetes Secret!
+
+Этот более полный пример включает в себя необходимые шаги по предоставлению Service Account прав доступа к Kubernetes ресурсам.  Не забудьте настроить права доступа таким образом, чтобы Service Account имел только необходимые разрешения, избегая предоставления избыточных прав.  Это важная часть обеспечения безопасности вашего кластера.
+
+

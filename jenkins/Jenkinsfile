@@ -1,0 +1,35 @@
+pipeline {
+    agent any
+    stages {
+        stage('Deploy to Kubernetes') {
+            steps {
+                withCredentials([kubernetesServiceAccountSecret(credentialsId: 'my-k8s-service-account', secretName: 'my-secret-name', namespace: 'my-namespace')]) {
+                    try {
+                        sh 'kubectl apply -f deployment.yaml'
+                        echo 'Deployment applied successfully!'
+                    } catch (Exception e) {
+                        error("Deployment failed: ${e.message}")
+                        currentBuild.result = 'FAILURE'
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+pipeline {
+    agent any
+    stages {
+        stage('Print Secret Text Credential') {
+            steps {
+                withCredentials([secretText(credentialsId: 'EXTERNAL_TOKEN', variable: 'MY_EXTERNAL_TOKEN')]) {
+                    echo "EXTERNAL_TOKEN: ${MY_EXTERNAL_TOKEN}"
+                }
+            }
+        }
+    }
+}
+
+
