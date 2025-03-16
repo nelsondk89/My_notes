@@ -1,0 +1,147 @@
+Prometheus Certifications
+
+Prometheus Certified Associate (PCA)
+  - online
+  - Proctored (под наблюдением)
+  - multi choose questions
+  - 90 minutes exam
+  - 60 questions 
+  - 75% passing mark
+  - 250$ usd include one free retake
+
+https://www.cncf.io/training/certification/pca/ 
+
+комьюнити
+
+https://prometheus.io/community/
+https://github.com/prometheus-community
+
+
+какие экспортеры бывают
+https://prometheus.io/docs/instrumenting/exporters/
+
+
+каждый экспортер собирает метрики в ыормате tsdb и делает их доступными для сбора по какому то порту.
+пример для node exporter (мониторинг линукс) порт 9100
+
+
+Бвает 4 типа метрик: 
+
+  - Counter
+      - может только увеличиваться
+      - можно обнулить, если перезапустиь сервис который мониторится
+  - Gauge
+      - может увеличиваться и уменьшаться
+  - Histogram 
+      - показывает распределение величин метрики по группам
+  - Summary
+      - Показывает Persentile / Quantile из Histogram 
+
+ 
+Есть главный сервер на который собираются метрики с экспортеров:
+
+Prometheus Server
+http://10.0.0.0:9090
+
+  Clinet-Linux (Node Exporter)
+  http://10.0.0.1:9100/metrics
+
+  Clinet-Linux (Node Exporter + JMeter Exporter)
+  http://10.0.0.2:9100/metrics
+  http://10.0.0.2:9270/metrics 
+
+  Clinet-Windows (Windows Exporter)
+  http://10.0.0.3:9182/metrics
+
+  Clinet-Windows (Windows Exporter)
+  http://10.0.0.4:9182/metrics
+
+
+на главном сервере есть конфигурационный файл prometheus.yml :
+---
+
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name       : "ubuntu-servers"
+    static_configs : 
+      - targets:
+          - 10.0.0.1:9100
+          - 10.0.0.2:9100
+
+  - job_name       : "windows-servers"
+    static_configs : 
+      - targets:
+          - 10.0.0.3:9182
+          - 10.0.0.4:9182
+
+  - job_name       : "jmeter-servers"
+    static_configs : 
+      - targets:
+          - 10.0.0.2:9270
+
+...
+
+
+на главный сервер также ставится Prometheus Alert Manager
+
+
+ls
+
+data/           - директория с данными tsdb появляется после первого запуска
+prometheus*     - сам бинарник прометеуса
+prometheus.yml  - файл конфигурации
+
+
+
+
+
+для запросов мертрик Prometheus использует PromQL (Prometheus Query Language)
+
+
+
+
+
+
+
+#2 
+
+установка на ubuntu
+
+используя файл install_prometheus_server.sh
+
+
+
+
+
+#3 
+
+установка node exporter 
+
+используя файл install_node_exporter.sh
+
+
+
+# динамически изменять количество серверов с нодэкспортер
+
+
+---
+
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name       : "prometheus"
+    static_configs : 
+      - targets:
+          - localhost:9090
+
+  - job_name       : "prod-servers"
+    ec2_sd_configs :
+      - port: 9100
+        filters:
+          - name   : tag:Environment
+            values : ["prod"]
+...
+

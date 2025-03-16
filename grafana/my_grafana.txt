@@ -1,0 +1,32 @@
+
+
+
+grafana installation
+
+https://grafana.com/docs/grafana/latest/setup-grafana/installation/debian/
+https://grafana.com/grafana/download
+
+
+grafana configurations:
+/etc/grafana/
+  grafana.ini
+  ldap.toml
+  provisioning/
+    access-controll/
+      sample.yaml
+    alerting/
+      sample.yaml 
+    dashboards/
+      sample.yaml
+    datasources/
+      prometheus.yaml
+      sample.yaml
+    plugins/
+      sample.yaml
+
+
+grafana installation folder:
+/usr/share/grafana/
+
+
+installation using script
