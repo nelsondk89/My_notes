@@ -1,7 +1,7 @@
 
 ####
 
-
+https://github.com/strongjz/Networking-and-Kubernetes
 
 
 
@@ -584,3 +584,6 @@ kubectl describe secret $(kubectl get secrets -n my-namespace | grep my-jenkins-
 Этот более полный пример включает в себя необходимые шаги по предоставлению Service Account прав доступа к Kubernetes ресурсам.  Не забудьте настроить права доступа таким образом, чтобы Service Account имел только необходимые разрешения, избегая предоставления избыточных прав.  Это важная часть обеспечения безопасности вашего кластера.
 
 
+
+# добавление сертификата
+# kubectl create secret generic <secret_name> --from-file=<path/file_name> -n <name_space>
