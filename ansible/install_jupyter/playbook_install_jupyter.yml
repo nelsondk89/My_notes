@@ -1,0 +1,107 @@
+---
+- hosts: all
+  become: true
+  vars:
+    jupyter_user: "jupyter"
+    jupyter_notebooks_dir: "/home/{{ jupyter_user }}/notebooks"
+    jupyter_config_dir: "/home/{{ jupyter_user }}/.jupyter"
+    jupyter_config_file: "{{ jupyter_config_dir }}/jupyter_notebook_config.py"
+    jupyter_port: "8888"
+    # jupyter_ip: "*" # Очень небезопасно!  Лучше не использовать.
+    password_hash: "" #  Лучше получать его динамически, чем хранить в playbook
+
+  tasks:
+    - name: Create Jupyter user
+      user:
+        name: "{{ jupyter_user }}"
+        system: yes
+        create_home: yes
+        home: "/home/{{ jupyter_user }}"  # Явное указание домашнего каталога
+
+    - name: Create notebooks directory
+      file:
+        path: "{{ jupyter_notebooks_dir }}"
+        state: directory
+        owner: "{{ jupyter_user }}"
+        group: "{{ jupyter_user }}"
+        mode: "0755"  # Права доступа для каталога
+
+    - name: Install Jupyter Notebook
+      apt:
+        name: jupyter-notebook
+        state: present
+        update_cache: yes
+
+    - name: Ensure Jupyter configuration directory exists
+      file:
+        path: "{{ jupyter_config_dir }}"
+        state: directory
+        owner: "{{ jupyter_user }}"
+        group: "{{ jupyter_user }}"
+        mode: "0700" # Важно: более строгие права доступа к конфигурации
+
+    - name: Generate Jupyter configuration file (as the Jupyter user)
+      command: "jupyter notebook --generate-config"
+      become: yes
+      become_user: "{{ jupyter_user }}"  # Выполняем команду от имени пользователя jupyter
+      args:
+        chdir: "/home/{{ jupyter_user }}"
+      creates: "{{ jupyter_config_file }}" #  Идемпотентность: создаем, только если файл не существует
+
+    - name: Ensure ownership of Jupyter configuration file
+      file:
+        path: "{{ jupyter_config_file }}"
+        owner: "{{ jupyter_user }}"
+        group: "{{ jupyter_user }}"
+
+    - name: Generate password hash (securely)
+      script: generate_password_hash.py #  Вызываем локальный скрипт на управляющей машине
+      register: password_hash_result  # Регистрируем вывод скрипта
+
+    - name: Set Jupyter Notebook password in configuration file
+      lineinfile:
+        path: "{{ jupyter_config_file }}"
+        regexp: "^c.NotebookApp.password = "
+        line: "c.NotebookApp.password = u'{{ password_hash_result.stdout }}'"
+        owner: "{{ jupyter_user }}"
+        group: "{{ jupyter_user }}"
+
+    - name: Set Jupyter Notebook token to empty
+      lineinfile:
+        path: "{{ jupyter_config_file }}"
+        regexp: "^c.NotebookApp.token = "
+        line: "c.NotebookApp.token = ''"
+        owner: "{{ jupyter_user }}"
+        group: "{{ jupyter_user }}"
+
+    - name: Set Jupyter Notebook port
+      lineinfile:
+        path: "{{ jupyter_config_file }}"
+        regexp: "^c.NotebookApp.port = "
+        line: "c.NotebookApp.port = {{ jupyter_port }}"
+        owner: "{{ jupyter_user }}"
+        group: "{{ jupyter_user }}"
+
+    - name: Set Jupyter Notebook directory
+      lineinfile:
+        path: "{{ jupyter_config_file }}"
+        regexp: "^c.NotebookApp.notebook_dir = "
+        line: "c.NotebookApp.notebook_dir = '{{ jupyter_notebooks_dir }}'"
+        owner: "{{ jupyter_user }}"
+        group: "{{ jupyter_user }}"
+
+    - name: Create systemd service file
+      template:
+        src: jupyter.service.j2  # Используем шаблон для файла службы
+        dest: /etc/systemd/system/jupyter.service
+
+    - name: Enable and start Jupyter service
+      systemd:
+        name: jupyter.service
+        state: started
+        enabled: yes
+        daemon_reload: yes
+
+    - name: Output access information
+      debug:
+        msg: "Jupyter Notebook доступен по адресу: http - FORBIDDEN - <IP_ADDRESS> : {{ jupyter_port }}.  Замените <IP_ADDRESS> на IP-адрес сервера."
