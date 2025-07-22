@@ -1,0 +1,39 @@
+- name: Create user
+  ansible.builtin.user:
+    name: "{{ user_name }}"
+    password: "{{ user_password }}"
+    state: present
+    comment: "User created by Ansible"
+
+- name: Add user to sudo group (conditional)
+  ansible.builtin.user:
+    name: "{{ user_name }}"
+    groups: sudo
+    append: yes
+    state: present
+  when: sudo_access
+
+- name: Create user home directory
+  ansible.builtin.file:
+    path: "/home/{{ user_name }}"
+    state: directory
+    mode: "0755"
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+
+- name: Allow SSH access (conditional)
+  block:
+    - name: Generate SSH keys (if needed - you'll need to adjust this for your key management)
+      # Здесь можно добавить логику для генерации ключей, если нужно
+      # Это сильно зависит от вашего метода управления ключами
+      # Пример - используйте модуль 'authorized_key', но это сложнее, чем кажется
+
+    - name: Add authorized keys (only if ssh_access is true and keys exist)
+      # Здесь предполагается, что ключи уже сгенерированы и доступны через переменную 'ssh_key_path'
+      # Это нужно будет реализовать в зависимости от вашего workflow
+      ansible.builtin.authorized_key:
+        user: "{{ user_name }}"
+        key: "{{ lookup('file', ssh_key_path) }}"
+        state: present
+  when: ssh_access
+

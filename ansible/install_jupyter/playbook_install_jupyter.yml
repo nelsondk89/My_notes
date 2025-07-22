@@ -21,7 +21,7 @@
     - name: Create notebooks directory
       file:
         path: "{{ jupyter_notebooks_dir }}"
-        state: directory
+        state: directoryls -lh
         owner: "{{ jupyter_user }}"
         group: "{{ jupyter_user }}"
         mode: "0755"  # Права доступа для каталога

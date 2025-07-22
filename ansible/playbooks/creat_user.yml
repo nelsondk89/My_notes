@@ -1,0 +1,9 @@
+- hosts: localhost
+  become: true
+  roles:
+    - role: create_user
+      vars:
+        user_name: mynewuser
+        ssh_access: false  # Отключаем SSH доступ
+        sudo_access: true   # Даём права sudo
+

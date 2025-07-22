@@ -1,0 +1,7 @@
+user_name: ""
+user_password: ""
+user_group: ""
+user_shell: "/bin/bash"
+add_sudo: false
+remote_login: true
+state: "present" # Указывает, что пользователь должен существовать
